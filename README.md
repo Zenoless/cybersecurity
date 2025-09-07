@@ -13,6 +13,8 @@ pkg update && pkg upgrade -y
 pkg install python git -y
 pip install . // if error you can delete the .
 
+```
+
 # How to install in Kail Linuxy
 
 1. Install the Package
