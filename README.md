@@ -17,7 +17,7 @@ pip install . # if error you can delete the .
 # 2. Clone the git
 git clone https://github.com/Zenoless/cybersecurity.git
 cd cybersecurity
-./main.py
+./main.py # if not work use python3 main.py
 ```
 
 # How to install in Kail Linuxy
@@ -31,4 +31,4 @@ sudo apt install git -y
 # 2. Clone the git
 git clone https://github.com/Zenoless/cybersecurity.git
 cd cybersecurity
-./main.py
+python3 main.py
