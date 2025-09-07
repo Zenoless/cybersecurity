@@ -28,7 +28,7 @@ def register(users):
 
     password = input("Choose a password: ")
 
-    # Generate a unique token/ID for this user
+    # Generate unique ID
     user_id = str(uuid.uuid4())
 
     users[username] = {
@@ -41,16 +41,42 @@ def register(users):
     print(f"Assigned ID: {user_id}")
     return users
 
+def user_menu(username):
+    while True:
+        clear_screen()
+        print(f"👋 Hello, {username}!")
+        print("=== User Menu ===")
+        print("[1] Profile Info")
+        print("[2] Settings")
+        print("[3] Logout")
+
+        choice = input("Select an option: ")
+
+        if choice == "1":
+            print(f"📌 Username: {username}")
+            input("\nPress Enter to continue...")
+        elif choice == "2":
+            print("⚙️ Settings menu (not implemented yet).")
+            input("\nPress Enter to continue...")
+        elif choice == "3":
+            print("👋 Logged out.")
+            break
+        else:
+            print("⚠️ Invalid choice")
+            input("\nPress Enter to continue...")
+
 def login(users):
     clear_screen()
     username = input("Username: ")
     password = input("Password: ")
 
     if username in users and users[username]["password"] == hash_password(password):
-        print(f"🎉 Welcome back, {username}!")
-        print(f"Your ID: {users[username]['id']}")
+        print(f"🎉 Login successful! Welcome, {username}!")
+        input("\nPress Enter to continue...")
+        user_menu(username)
     else:
         print("❌ Invalid username or password")
+        input("\nPress Enter to continue...")
 
 def main():
     users = load_users()
@@ -68,7 +94,6 @@ def main():
             input("\nPress Enter to continue...")
         elif choice == "2":
             login(users)
-            input("\nPress Enter to continue...")
         elif choice == "3":
             print("Goodbye!")
             break
