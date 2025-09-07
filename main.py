@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import os, json, hashlib
+import os, json, hashlib, uuid
 
 DATA_FILE = "users.json"
 
@@ -14,7 +14,7 @@ def load_users():
 
 def save_users(users):
     with open(DATA_FILE, "w") as f:
-        json.dump(users, f)
+        json.dump(users, f, indent=4)
 
 def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()
@@ -27,9 +27,18 @@ def register(users):
         return users
 
     password = input("Choose a password: ")
-    users[username] = hash_password(password)
+
+    # Generate a unique token/ID for this user
+    user_id = str(uuid.uuid4())
+
+    users[username] = {
+        "id": user_id,
+        "password": hash_password(password)
+    }
+
     save_users(users)
     print("✅ Registration successful!")
+    print(f"Assigned ID: {user_id}")
     return users
 
 def login(users):
@@ -37,8 +46,9 @@ def login(users):
     username = input("Username: ")
     password = input("Password: ")
 
-    if username in users and users[username] == hash_password(password):
+    if username in users and users[username]["password"] == hash_password(password):
         print(f"🎉 Welcome back, {username}!")
+        print(f"Your ID: {users[username]['id']}")
     else:
         print("❌ Invalid username or password")
 
