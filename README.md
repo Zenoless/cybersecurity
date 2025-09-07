@@ -13,7 +13,7 @@ pkg update && pkg upgrade -y
 pkg install python git -y
 pip install . // if error you can delete the .
 
-```bash
+---
 
 # How to install in Kail Linuxy
 
