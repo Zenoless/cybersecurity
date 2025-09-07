@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 import os, json, hashlib, uuid
 import requests
-import uuid
-import concurrent.futures
 
 USERS_FILE = "users.json"
 SESSION_FILE = "session.json"
@@ -59,22 +57,26 @@ def register(users):
     print(f"Assigned ID: {user_id}")
     return users
 
-def send_message(username, message):
-    url = "https://ngl.link/api/submit"
-    headers = {
-        "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
-        "Origin": "https://ngl.link",
-        "Referer": f"https://ngl.link/{username}",
-        "User-Agent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Mobile Safari/537.36",
-    }
-    data = {
-        "username": username,
-        "question": message,
-        "deviceId": str(uuid.uuid4()),
-        "gameSlug": "",
-        "referrer": "",
-    }
-    requests.post(url, headers=headers, data=data)
+def send_sms_textbelt():
+    clear_screen()
+    print("=== SMS Service (Textbelt) ===")
+    phone_number = input("Enter recipient phone number with country code (e.g., +66812345678): ")
+    message_text = input("Enter message: ")
+    amount = int(input("Enter amount of messages to send: "))
+
+    for i in range(amount):
+        resp = requests.post('https://textbelt.com/text', {
+            'phone': phone_number,
+            'message': message_text,
+            'key': 'textbelt',  # free trial key
+        })
+        result = resp.json()
+        if result.get('success'):
+            print(f"✅ Message {i+1} sent!")
+        else:
+            print(f"❌ Failed to send message {i+1}: {result.get('error')}")
+
+    input("\nPress Enter to continue...")
 
 def user_menu(username):
     while True:
@@ -83,7 +85,7 @@ def user_menu(username):
         print("=== User Menu ===")
         print("[1] Profile Info")
         print("[2] Settings (change password)")
-        print("[3] spam sms / spam number calling")
+        print("[3] SMS Service")
         print("[4] Logout")
 
         choice = input("Select an option: ")
@@ -91,6 +93,7 @@ def user_menu(username):
         if choice == "1":
             print(f"📌 Username: {username}")
             input("\nPress Enter to continue...")
+
         elif choice == "2":
             new_pass = input("Enter new password: ")
             users = load_users()
@@ -98,25 +101,15 @@ def user_menu(username):
             save_users(users)
             print("✅ Password updated!")
             input("\nPress Enter to continue...")
-        elif choice == "3": 
-            clear_screen()
-            username = input("Enter username: ")
-            message = input("Enter message: ")
-            try:
-                count = int(input("Enter number of submissions: "))
-            except ValueError:
-                print("Please enter a valid number.")
-                return
-            
-            with concurrent.futures.ThreadPoolExecutor() as executor:
-                futures = [executor.submit(send_message, username, message) for _ in range(count)]
-                concurrent.futures.wait(futures)
-            
-            print(f"Sent {count} messages successfully.")
+
+        elif choice == "3":
+            send_sms_textbelt()  # send SMS using Textbelt
+
         elif choice == "4":
             print("👋 Logged out.")
             clear_session()
             break
+
         else:
             print("⚠️ Invalid choice")
             input("\nPress Enter to continue...")
@@ -138,7 +131,7 @@ def login(users):
 def main():
     users = load_users()
 
-    # 🔥 Check session at startup
+    # Check session at startup
     session_user = load_session()
     if session_user and session_user in users:
         user_menu(session_user)
