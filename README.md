@@ -12,8 +12,7 @@ It supports user registration and login with SHA256 password hashing.
 pkg update && pkg upgrade -y
 pkg install python git -y
 pip install . // if error you can delete the .
-
----
+```
 
 # How to install in Kail Linuxy
 
