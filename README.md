@@ -27,7 +27,6 @@ cd cybersecurity
 sudo apt update && apt upgrade -y
 sudo apt install python git -y
 sudo apt install git -y
-pip install
 
 # 2. Clone the git
 git clone https://github.com/Zenoless/cybersecurity.git
