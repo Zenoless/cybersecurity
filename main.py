@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 import os, json, hashlib, uuid
 import requests
+import uuid
+import concurrent.futures
+from flask import Flask, request
+import socket
 
 USERS_FILE = "users.json"
 SESSION_FILE = "session.json"
@@ -57,26 +61,98 @@ def register(users):
     print(f"Assigned ID: {user_id}")
     return users
 
-def send_sms_textbelt():
+def send_message(phone_number, message):
     clear_screen()
-    print("=== SMS Service (Textbelt) ===")
-    phone_number = input("Enter recipient phone number with country code (e.g., +66812345678): ")
-    message_text = input("Enter message: ")
-    amount = int(input("Enter amount of messages to send: "))
+    url = "https://httpbin.org/post"  # Safe test endpoint
+    headers = {
+        "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+        "User-Agent": "PythonDemo/1.0",
+    }
+    data = {
+        "phone_number": phone_number,
+        "message": message,
+        "deviceId": str(uuid.uuid4()),
+    }
+    try:
+        r = requests.post(url, headers=headers, data=data, timeout=5)
+        r.raise_for_status()
+        print(f"✔ Sent test message to {phone_number}")
+    except requests.RequestException as e:
+        print(f"❌ Failed: {e}")
 
-    for i in range(amount):
-        resp = requests.post('https://textbelt.com/text', {
-            'phone': phone_number,
-            'message': message_text,
-            'key': 'textbelt',  # free trial key
-        })
-        result = resp.json()
-        if result.get('success'):
-            print(f"✅ Message {i+1} sent!")
-        else:
-            print(f"❌ Failed to send message {i+1}: {result.get('error')}")
+def send_sms_textbelt(): 
+    phone_number = input("Enter iPhone number (e.g. +66XXXXXXXXX): ")
+    message = input("Enter message: ")
+    try:
+        count = int(input("Enter number of submissions: "))
+    except ValueError:
+        print("Please enter a valid number.")
+        return
 
-    input("\nPress Enter to continue...")
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        futures = [executor.submit(send_message, phone_number, message) for _ in range(count)]
+        concurrent.futures.wait(futures)
+
+    print(f"Attempted {count} requests.")
+
+def FoundIP():
+    app = Flask(__name__)
+
+    def get_server_ip():
+        """Get the local IP of the server."""
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        try:
+            s.connect(("8.8.8.8", 80))  # doesn't have to be reachable
+            ip = s.getsockname()[0]
+        except Exception:
+            ip = "127.0.0.1"
+        finally:
+            s.close()
+        return ip
+
+    @app.route('/')
+    def index():
+        visitor_ip = request.remote_addr
+        server_ip = get_server_ip()
+
+        html_content = f"""
+        <html>
+        <head>
+            <title>Welcome</title>
+            <style>
+                body {{
+                    background: linear-gradient(135deg, #4eff4e, #9cff9c);
+                    color: white;
+                    height: 100vh;
+                    margin: 0;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    text-align: center;
+                    font-family: Arial, sans-serif;
+                    font-weight: bold;
+                }}
+                .BIG {{
+                    font-size: 2em;
+                }}
+            </style>
+        </head>
+        <body>
+            <div>
+                <h1>Welcome back,</h1>
+                <h2>My Name is Leo. If you see this text you cannot hide anymore.</h2>
+                <h2>I have your IP already. Your network IP is: <strong>{visitor_ip}</strong></h2>
+                <h2>Server (self) IP is: <strong>{server_ip}</strong></h2>
+                <h2>Thanks for reading, have fun! <span class="BIG">Hacked!</span></h2>
+            </div>
+        </body>
+        </html>
+        """
+        print(f"Visitor IP: {visitor_ip} | Server IP: {server_ip}")  # log to console
+        return html_content
+
+    # Run the server
+    app.run(host='0.0.0.0', port=5000, debug=True)
 
 def user_menu(username):
     while True:
@@ -87,6 +163,7 @@ def user_menu(username):
         print("[2] Settings (change password)")
         print("[3] SMS Service")
         print("[4] Logout")
+        print("[5] IP Founded")
 
         choice = input("Select an option: ")
 
@@ -109,7 +186,9 @@ def user_menu(username):
             print("👋 Logged out.")
             clear_session()
             break
-
+        elif choice == "5": 
+            clear_screen()
+            FoundIP()
         else:
             print("⚠️ Invalid choice")
             input("\nPress Enter to continue...")
